@@ -1,7 +1,7 @@
 {
-  "name": "docker-express-mongo-project-template",
+  "name": "react-to-do",
   "version": "0.0.1",
-  "description": "Express project template",
+  "description": "Simple react to-do list application using docker and express",
   "main": "./src/index.js",
   "scripts": {
     "build": "npx webpack",
@@ -10,11 +10,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/jdfx"
+    "url": "https://github.com/jdfx/react-to-do"
   },
   "author": "Joel Derbyshire",
   "license": "MIT",
-  "homepage": "https://github.com/jdfx",
+  "homepage": "https://github.com/jdfx/react-to-do",
   "dependencies": {
     "babel-plugin-transform-async-to-generator": "^6.24.1",
     "dotenv": "^8.2.0",
@@ -29,13 +29,18 @@
     "@babel/preset-env": "7.5.4",
     "@babel/register": "7.4.4",
     "@babel/runtime": "7.5.5",
+    "@types/express": "^4.17.6",
+    "@types/node": "^13.13.0",
     "babel-jest": "24.8.0",
     "babel-loader": "8.0.6",
     "babel-plugin-syntax-dynamic-import": "6.18.0",
     "jest": "24.8.0",
     "jest-cli": "24.8.0",
-    "webpack-cli": "^3.3.6",
+    "nodemon": "^2.0.2",
+    "ts-loader": "^6.2.2",
+    "typescript": "^3.8.3",
     "webpack": "4.35.3",
+    "webpack-cli": "^3.3.6",
     "webpack-node-externals": "1.7.2"
   },
   "jest": {

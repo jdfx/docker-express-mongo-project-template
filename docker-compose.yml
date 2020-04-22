@@ -2,7 +2,9 @@ version: '3.7'
 services:
   mongo:
     image: mongo
-    restart: always
+    networks:
+      - backend    
+    restart: on-failure
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: example
@@ -11,28 +13,92 @@ services:
     container_name: "${app_name}_${instance_id}_mongo_db"
   mongo-express:
     image: mongo-express
-    restart: always
+    networks:
+      - frontend # @todo - make mongo express more secure, maybe remove from production build when done?
+      - backend    
+    restart: on-failure
     ports:
-      - 8081:8081
+      - 8085:8085
     environment:
       ME_CONFIG_MONGODB_ADMINUSERNAME: root
       ME_CONFIG_MONGODB_ADMINPASSWORD: example
     depends_on:
       - mongo
-    container_name: "${app_name}_${instance_id}_mongo_admin"  
-  node:
-    image: "node:alpine3.11"
-    ports:
-      - 8082:8082
+    container_name: "${app_name}_${instance_id}_mongo_admin"
+  node_modules_container:
+    image: node:alpine3.11
+    user: "root"
+    working_dir: /home/node/app
+    environment:
+      - NODE_ENV=production
+    volumes:
+      - nodemodules:/home/node/app/node_modules  
+      - .:/home/node/app
+    container_name: "${app_name}_${instance_id}_node_modules_builder"
+    command: npm i    
+  node_server:
+    image: node:alpine3.11
+    networks:
+      - frontend
+      - backend    
+    restart: on-failure
+    expose: 
+      - "3666"
     user: "node"
     working_dir: /home/node/app
     environment:
       - NODE_ENV=production
     volumes:
-      - ./:/home/node/app
-    expose:
-      - "8082"
+      - ./dist/server/:/home/node/app
+      - nodemodules:/home/node/app/node_modules
     depends_on:
       - mongo
-    container_name: "${app_name}_${instance_id}_node"
-    command: sh -c "npm run start"
+      - node_modules_container
+    container_name: "${app_name}_${instance_id}_node_server"
+    command: sh -c "node server.js"
+  node_client:
+    image: node:alpine3.11
+    networks:
+      - frontend    
+    restart: on-failure
+    expose:
+      - "3666"  
+    user: "node"
+    working_dir: /home/node/app
+    environment:
+      - NODE_ENV=production
+    volumes:
+      - ./dist/client/:/home/node/app
+      - nodemodules:/home/node/app/node_modules
+    depends_on:
+      - node_modules_container
+      - node_server
+    container_name: "${app_name}_${instance_id}_node_client"
+    command: sh -c "node client.js"
+  reverse_proxy:
+    container_name: ${app_name}_${instance_id}_reverse_proxy
+    build:
+      context : ./reverse-proxy
+      dockerfile: proxy.Dockerfile
+    networks:
+      - frontend
+    hostname: ${app_name}.local
+    depends_on:
+      - node_server
+      - node_client
+    #volumes:
+    # - <path/to/your/config>:/etc/nginx
+    # - <path/to/your/certs>:/etc/ssl/private 
+    ports:
+      - 80:80
+      - 443:443
+volumes:
+  nodemodules:
+    external: true
+    name: ${app_name}_nodemodules_${instance_id}
+networks:
+  frontend:
+    driver: bridge
+  backend:
+    driver: bridge      
+   
