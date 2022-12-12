@@ -18,7 +18,7 @@
   "dependencies": {
     "babel-plugin-transform-async-to-generator": "^6.24.1",
     "dotenv": "^8.2.0",
-    "express": "4.17.1",
+    "express": "4.17.3",
     "express-boom": "3.0.0",
     "lodash": "4.17.15"
   },
